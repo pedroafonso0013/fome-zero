@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital Express</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: #f9fafb; padding-bottom: 90px; }
+        .capa-container { height: 140px; background-color: #dc2626; background-size: cover; background-position: center; width: 100%; }
+        .perfil-loja { max-width: 420px; margin: -40px auto 0 auto; padding: 0 1rem; display: flex; align-items: center; gap: 12px; position: relative; z-index: 10; }
+        .logo-redonda { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; }
+        .info-loja { display: flex; align-items: center; margin-top: 20px; }
+        .badge { display: inline-block; font-size: 0.7rem; padding: 5px 12px; border-radius: 50px; font-weight: bold; color: white; }
+        .badge.aberto { background: #22c55e; }
+        .badge.fechado { background: #ef4444; }
+        .banner-fechado { background: #fee2e2; border: 2px dashed #ef4444; padding: 15px; border-radius: 12px; text-align: center; color: #b91c1c; font-weight: bold; margin: 15px auto; max-width: 420px; width: calc(100% - 20px); }
+        
+        /* Box do Cartão Fidelidade */
+        .box-fidelidade { background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; padding: 15px; border-radius: 12px; margin: 15px auto; max-width: 420px; width: calc(100% - 20px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .box-fidelidade h4 { font-size: 0.85rem; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+        .progresso-carimbos { display: flex; gap: 6px; justify-content: space-between; margin-top: 10px; }
+        .carimbo { width: 28px; height: 28px; background: rgba(255,255,255,0.1); border: 2px dashed rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+        .carimbo.ativo { background: #eab308; border-color: #eab308; color: #1e1b4b; animation: pop 0.3s ease; }
+
+        main { width: 100%; max-width: 420px; margin: 1.5rem auto; padding: 0 1rem; }
+        .secao-cat { margin-bottom: 2rem; }
+        .secao-cat h2 { font-size: 1.1rem; color: #1f2937; border-bottom: 2px solid #dc2626; padding-bottom: 4px; margin-bottom: 1rem; }
+        .card-prod { background: white; padding: 1rem; border-radius: 1rem; border: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
+        .foto-cardapio { width: 75px; height: 75px; border-radius: 12px; object-fit: cover; background: #f3f4f6; border: 1px solid #eee; }
+        .prod-detalhes { flex: 1; padding-right: 4px; }
+        .prod-detalhes h3 { font-size: 0.95rem; font-weight: bold; }
+        .prod-detalhes p { font-size: 0.75rem; color: #6b7280; margin-top: 2px; }
+        .prod-detalhes .preco { color: #dc2626; font-weight: bold; font-size: 0.9rem; margin-top: 8px; }
+        .area-direita { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .btn-add { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 0.5rem; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+        .btn-add:disabled { background: #d1d5db; cursor: not-allowed; }
+
+        .barra-fixa { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e5e7eb; padding: 1rem; z-index: 40; }
+        .barra-container { width: 100%; max-width: 420px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .barra-textos .total { font-size: 1.1rem; font-weight: bold; }
+        .btn-ver-pedido { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 0.75rem; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
+        .modal-content { background: white; width: 100%; max-width: 420px; border-radius: 2rem 2rem 0 0; padding: 1.5rem; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .btn-fechar { background: none; border: none; font-size: 1.2rem; color: #9ca3af; }
+        .item-checkout { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+        .controles-qtd { display: flex; align-items: center; gap: 10px; }
+        .btn-qtd { width: 26px; height: 26px; border-radius: 50%; border: none; background: #f3f4f6; font-weight: bold; }
+        .form-group { margin-top: 10px; }
+        .form-group label { display: block; font-size: 0.7rem; font-weight: bold; color: #4b5563; margin-bottom: 2px; }
+        input, select { width: 100%; background: #f9fafb; border: 1px solid #e5e7eb; padding: 9px; border-radius: 0.75rem; font-size: 0.85rem; outline: none; }
+        .flex-cupom { display: flex; gap: 6px; margin-top: 4px; }
+        .btn-cupom { background: #111827; color: white; border: none; padding: 0 12px; border-radius: 0.75rem; font-size: 0.75rem; font-weight: bold; }
+        .linha-opcional { display: flex; justify-content: space-between; align-items: center; background: #f9fafb; padding: 10px; border-radius: 0.75rem; border: 1px solid #e5e7eb; }
+        .linha-opcional label { font-size: 0.85rem; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 10px; width: 100%; cursor: pointer; }
+        .linha-opcional input[type="checkbox"] { width: 18px; height: 18px; accent-color: #dc2626; cursor: pointer; }
+        .linha-opcional .preco-opc { font-size: 0.8rem; font-weight: bold; color: #dc2626; white-space: nowrap; }
+        .box-pagamento-extra { background: #eff6ff; padding: 10px; border-radius: 0.75rem; margin-top: 8px; border: 1px solid #bfdbfe; }
+        .box-pagamento-extra p { font-size: 0.75rem; color: #1e40af; font-weight: 500; }
+        .box-pagamento-extra span { font-family: monospace; background: white; padding: 4px; border-radius: 4px; display: block; margin-top: 4px; font-weight: bold; border: 1px solid #dbeafe; word-break: break-all; }
+        .resumo-valores { background: #f9fafb; padding: 10px; border-radius: 0.75rem; margin-top: 12px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; }
+        .resumo-linha { display: flex; justify-content: space-between; }
+        .btn-enviar-wpp { width: 100%; border: none; background: #16a34a; color: white; padding: 12px; border-radius: 0.75rem; font-size: 0.9rem; font-weight: bold; margin-top: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .hidden { display: none !important; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div id="capa-loja" class="capa-container"></div>
+    <div class="perfil-loja">
+        <img id="logo-loja" src="https://placehold.co/100x100?text=Logo" class="logo-redonda">
+        <div class="info-loja">
+            <div id="badge-loja" class="badge aberto">Verificando...</div>
+        </div>
+    </div>
+
+    <!-- CARTÃO FIDELIDADE -->
+    <div class="box-fidelidade">
+        <h4><i class="fa-solid fa-star" style="color:#eab308;"></i> Seu Cartão Fidelidade</h4>
+        <p style="font-size:0.7rem; color: #cbd5e1;">Complete 10 pedidos e ganhe R$ 15,00 de desconto automático!</p>
+        <div id="fidelidade-carimbos" class="progresso-carimbos"></div>
+    </div>
+
+    <div id="aviso-fechado" class="banner-fechado hidden">
+        🚫 Estamos fechados no momento! Nosso horário é das <span id="txt-h-abre">00:00</span> às <span id="txt-h-fecha">00:00</span>.
+    </div>
+
+    <main>
+        <div id="container-cardapio"></div>
+    </main>
+
+    <div id="barra-carrinho" class="barra-fixa hidden">
+        <div class="barra-container">
+            <div class="barra-textos">
+                <span id="qtd-itens" style="font-size:0.7rem; color:#6b7280; display:block;">0 itens</span>
+                <span id="total-carrinho" class="total">R$ 0,00</span>
+            </div>
+            <button onclick="abrirModal()" class="btn-ver-pedido">Ver Pedido</button>
+        </div>
+    </div>
+
+    <!-- MODAL COMPLEMENTOS -->
+    <div id="modal-opcionais" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="opc-produto-nome" style="font-weight:bold; font-size:1rem;">Turbine seu pedido</h3>
+                <button onclick="fecharModalOpcionais()" class="btn-fechar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="lista-opcionais-checks" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <button onclick="confirmarAdicionarComOpcionais()" class="btn-enviar-wpp" style="background:#dc2626; margin-top:15px;">Confirmar e Adicionar</button>
+        </div>
+    </div>
+
+    <!-- MODAL FINALIZAR -->
+    <div id="modal-pedido" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-weight:bold;">Seu Pedido</h3>
+                <button onclick="fecharModal()" class="btn-fechar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="itens-checkout"></div>
+
+            <form onsubmit="finalizarPedido(event)">
+                <div class="form-group">
+                    <label>Seu Nome:</label>
+                    <input type="text" id="cli-nome" required>
+                </div>
+                <div class="form-group">
+                    <label>Seu Bairro / Região:</label>
+                    <select id="cli-bairro" onchange="recalcularTotalFinal()">
+                        <option value="centro">Centro / Região Próxima</option>
+                        <option value="bairro">Bairros Afastados</option>
+                        <option value="retirada">Vou Retirar na Lanchonete (Taxa: R$ 0)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Endereço de Entrega:</label>
+                    <input type="text" id="cli-endereco" placeholder="Rua, número e bairro">
+                </div>
+
+                <div class="form-group">
+                    <label>Cupom de Desconto:</label>
+                    <div class="flex-cupom">
+                        <input type="text" id="cli-cupom" placeholder="Digite aqui">
+                        <button type="button" onclick="aplicarCupom()" class="btn-cupom">Aplicar</button>
+                    </div>
+                    <span id="msg-cupom" style="font-size:0.7rem;font-weight:bold;margin-top:2px;display:block;"></span>
+                </div>
+
+                <div class="resumo-valores">
+                    <div class="resumo-linha"><span>Subtotal Itens:</span><span id="res-subtotal">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Taxa de Entrega:</span><span id="res-taxa">R$ 0,00</span></div>
+                    <div class="resumo-linha" style="color:#b91c1c;"><span>Desconto Cupom:</span><span id="res-desconto">- R$ 0,00</span></div>
+                    <div class="resumo-linha" style="color:#16a34a;" id="linha-fidelidade-desc"><span id="lbl-fidelidade">Bônus Fidelidade (Inativo):</span><span id="res-fidelidade">- R$ 0,00</span></div>
+                    <div class="resumo-linha" style="font-weight:bold; font-size:0.9rem; border-top:1px dashed #ddd; padding-top:4px;"><span>Total Geral:</span><span id="res-total-geral">R$ 0,00</span></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Forma de Pagamento:</label>
+                    <select id="cli-pagamento" onchange="ajustarOpcoesPagamento()" required>
+                        <option value="Pix">Pix</option>
+                        <option value="Cartão">Cartão na Entrega</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                    </select>
+                    <div id="sub-opcoes-pagamento"></div>
+                </div>
+
+                <button type="submit" class="btn-enviar-wpp"><i class="fa-brands fa-whatsapp"></i> Enviar para o WhatsApp</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let dadosLoja = JSON.parse(localStorage.getItem('fomezero_loja')) || {
+            nome: "Fome Zero", whatsapp: "5586999999999", aberta: true,
+            taxaCentro: 5.00, taxaBairro: 8.00, cupom: "FOME10", desconto: 10,
+            logo: "", capa: "", chavePix: "", horaAbre: "18:00", horaFecha: "23:30", usarHorarioAuto: true
+        };
+        let produtos = JSON.parse(localStorage.getItem('fomezero_produtos')) || [];
+        let carrinho = [];
+        let descontoAplicado = 0;
+        let produtoAlvoComplemento = null;
+        let totalPedidosFidelidade = parseInt(localStorage.getItem('fomezero_fidelidade_qtd')) || 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            verificarStatusLoja();
+            renderizarFidelidade();
+            renderizarCardapio();
+            
+            // Atalho secreto na logo para ir pro painel administrativo
+            let cliquesLogo = 0;
+            document.getElementById('logo-loja').addEventListener('click', () => {
+                cliquesLogo++; if (cliquesLogo >= 5) window.location.href = 'painel.html';
+                setTimeout(() => { cliquesLogo = 0; }, 3000);
+            });
+        });
+
+        function verificarStatusLoja() {
+            if(dadosLoja.capa) document.getElementById('capa-loja').style.backgroundImage = `url(${dadosLoja.capa})`;
+            if(dadosLoja.logo) document.getElementById('logo-loja').src = dadosLoja.logo;
+
+            document.getElementById('txt-h-abre').innerText = dadosLoja.horaAbre;
+            document.getElementById('txt-h-fecha').innerText = dadosLoja.horaFecha;
+
+            let abertaAgora = dadosLoja.aberta;
+
+            if(dadosLoja.usarHorarioAuto) {
+                let agora = new Date();
+                let atual = String(agora.getHours()).padStart(2, '0') + ":" + String(agora.getMinutes()).padStart(2, '0');
+                if (dadosLoja.horaAbre <= dadosLoja.horaFecha) {
+                    abertaAgora = (atual >= dadosLoja.horaAbre && atual <= dadosLoja.horaFecha);
+                } else {
+                    abertaAgora = (atual >= dadosLoja.horaAbre || atual <= dadosLoja.horaFecha);
+                }
+            }
+
+            const badge = document.getElementById('badge-loja');
+            const aviso = document.getElementById('aviso-fechado');
+
+            if(abertaAgora) {
+                badge.innerText = "Aberto"; badge.className = "badge aberto";
+                aviso.classList.add('hidden');
+            } else {
+                badge.innerText = "Fechado"; badge.className = "badge fechado";
+                aviso.classList.remove('hidden');
+            }
+            dadosLoja.abertaReal = abertaAgora;
+        }
+
+        function renderizarFidelidade() {
+            const cont = document.getElementById('fidelidade-carimbos');
+            cont.innerHTML = '';
+            for(let i=1; i<=10; i++) {
+                if(i <= totalPedidosFidelidade) {
+                    cont.innerHTML += `<div class="carimbo ativo"><i class="fa-solid fa-burger"></i></div>`;
+                } else {
+                    cont.innerHTML += `<div class="carimbo">${i}</div>`;
+                }
+            }
+        }
+
+        function renderizarCardapio() {
+            const container = document.getElementById('container-cardapio');
+            container.innerHTML = '';
+            const ativos = produtos.filter(p => p.ativo !== false);
+            if(ativos.length === 0) { container.innerHTML = '<p style="text-align:center;color:#9ca3af;padding-top:30px;">Nenhum item disponível.</p>'; return; }
+
+            const categorias = [...new Set(ativos.map(p => p.cat))];
+            categorias.forEach(cat => {
+                let html = `<div class="secao-cat"><h2>${cat}</h2>`;
+                ativos.filter(p => p.cat === cat).forEach(p => {
+                    const fotoSrc = p.foto ? p.foto : "https://placehold.co/100x100?text=Sem+Foto";
+                    html += `
+                        <div class="card-prod">
+                            <div class="prod-detalhes">
+                                <h3>${p.nome}</h3>
+                                <p>${p.desc}</p>
+                                <div class="preco">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
+                            </div>
+                            <div class="area-direita">
+                                <img src="${fotoSrc}" class="foto-cardapio">
+                                <button onclick="tentarAdicionarAoCarrinho('${p.nome}')" class="btn-add" ${!dadosLoja.abertaReal ? 'disabled' : ''}>+ Add</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function tentarAdicionarAoCarrinho(nomeProd) {
+            const prod = produtos.find(p => p.nome === nomeProd);
+            if(!prod) return;
+            if(prod.opcionais && prod.opcionais.trim() !== "") {
+                produtoAlvoComplemento = prod;
+                abrirModalOpcionais(prod);
+            } else {
+                adicionarAoCarrinhoEfetivo(prod.nome, prod.preco, []);
+            }
+        }
+
+        function abrirModalOpcionais(prod) {
+            document.getElementById('opc-produto-nome').innerText = `Adicionais para ${prod.nome}`;
+            const container = document.getElementById('lista-opcionais-checks');
+            container.innerHTML = '';
+            prod.opcionais.split('\n').forEach((l, idx) => {
+                if(!l.trim() || !l.includes(';')) return;
+                const partes = l.split(';');
+                container.innerHTML += `
+                    <div class="linha-opcional">
+                        <label for="opc-${idx}">
+                            <input type="checkbox" id="opc-${idx}" data-nome="${partes[0].trim()}" data-preco="${parseFloat(partes[1].trim()) || 0}">
+                            ${partes[0].trim()}
+                        </label>
+                        <span class="preco-opc">+ R$ ${parseFloat(partes[1].trim()).toFixed(2).replace('.',',')}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('modal-opcionais').classList.remove('hidden');
+        }
+
+        function fecharModalOpcionais() { document.getElementById('modal-opcionais').classList.add('hidden'); produtoAlvoComplemento = null; }
+
+        function confirmarAdicionarComOpcionais() {
+            const checkboxes = document.querySelectorAll('#lista-opcionais-checks input[type="checkbox"]:checked');
+            let selecionados = [];
+            checkboxes.forEach(cb => {
+                selecionados.push({ nome: cb.getAttribute('data-nome'), preco: parseFloat(cb.getAttribute('data-preco')) });
+            });
+            adicionarAoCarrinhoEfetivo(produtoAlvoComplemento.nome, produtoAlvoComplemento.preco, selecionados);
+            fecharModalOpcionais();
+        }
+
+        function adicionarAoCarrinhoEfetivo(nome, precoBase, opcionais) {
+            const stringChaveOpc = opcionais.map(o => o.nome).sort().join('|');
+            const idUnico = nome + (stringChaveOpc ? '_' + stringChaveOpc : '');
+            const itemExistente = carrinho.find(c => c.idUnico === idUnico);
+            if(itemExistente) itemExistente.qtd++;
+            else carrinho.push({ idUnico, nome, precoBase, opcionais, qtd: 1 });
+            atualizarBarraCarrinho();
+        }
+
+        function mudeQtd(idUnico, de) {
+            const item = carrinho.find(c => c.idUnico === idUnico);
+            if(item) {
+                item.qtd += de;
+                if(item.qtd <= 0) carrinho = carrinho.filter(c => c.idUnico !== idUnico);
+            }
+            atualizarBarraCarrinho(); renderizarModal();
+        }
+
+        function atualizarBarraCarrinho() {
+            const barra = document.getElementById('barra-carrinho');
+            const totalItens = carrinho.reduce((acc, c) => acc + c.qtd, 0);
+            const totalPreco = carrinho.reduce((acc, c) => acc + ((c.precoBase + (c.opcionais ? c.opcionais.reduce((s, o) => s + o.preco, 0) : 0)) * c.qtd), 0);
+            if(totalItens > 0 && dadosLoja.abertaReal) {
+                barra.classList.remove('hidden');
+                document.getElementById('qtd-itens').innerText = `${totalItens} itens`;
+                document.getElementById('total-carrinho').innerText = `R$ ${totalPreco.toFixed(2).replace('.',',')}`;
+            } else {
+                barra.classList.add('hidden'); fecharModal();
+            }
+        }
+
+        function abrirModal() { document.getElementById('modal-pedido').classList.remove('hidden'); renderizarModal(); ajustarOpcoesPagamento(); }
+        function fecharModal() { document.getElementById('modal-pedido').classList.add('hidden'); }
+
+        function renderizarModal() {
+            const container = document.getElementById('itens-checkout'); container.innerHTML = '';
+            carrinho.forEach(c => {
+                let htmlComplementos = '';
+                if(c.opcionais && c.opcionais.length > 0) {
+                    htmlComplementos = `<div style="font-size:0.7rem; color:#dc2626;">`;
+                    c.opcionais.forEach(o => { htmlComplementos += `+ ${o.nome} (R$ ${o.preco.toFixed(2)})<br>`; });
+                    htmlComplementos += `</div>`;
+                }
+                container.innerHTML += `
+                    <div class="item-checkout">
+                        <div style="flex:1;">
+                            <span style="font-size:0.85rem; font-weight:bold;">${c.nome}</span>
+                            ${htmlComplementos}
+                        </div>
+                        <div class="controles-qtd">
+                            <button type="button" class="btn-qtd" onclick="mudeQtd('${c.idUnico}', -1)">-</button>
+                            <span style="font-size:0.85rem;font-weight:bold;">${c.qtd}</span>
+                            <button type="button" class="btn-qtd" onclick="mudeQtd('${c.idUnico}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            recalcularTotalFinal();
+        }
+
+        function ajustarOpcoesPagamento() {
+            const forma = document.getElementById('cli-pagamento').value;
+            const container = document.getElementById('sub-opcoes-pagamento'); container.innerHTML = '';
+            if (forma === 'Dinheiro') {
+                container.innerHTML = `<input type="text" id="cli-troco" placeholder="Precisa de troco para quanto?" style="margin-top:8px;" required>`;
+            } else if (forma === 'Pix' && dadosLoja.chavePix) {
+                container.innerHTML = `<div class="box-pagamento-extra"><p>Chave Pix Copie e Cole:</p><span>${dadosLoja.chavePix}</span></div>`;
+            }
+        }
+
+        function aplicarCupom() {
+            const input = document.getElementById('cli-cupom').value.trim().toUpperCase();
+            const msg = document.getElementById('msg-cupom');
+            if(input === dadosLoja.cupom && dadosLoja.desconto > 0) {
+                descontoAplicado = dadosLoja.desconto; msg.innerText = `Cupom Válido!`; msg.style.color = "#22c55e";
+            } else {
+                descontoAplicado = 0; msg.innerText = "Inválido."; msg.style.color = "#ef4444";
+            }
+            recalcularTotalFinal();
+        }
+
+        function recalcularTotalFinal() {
+            const subtotal = carrinho.reduce((acc, c) => acc + ((c.precoBase + (c.opcionais ? c.opcionais.reduce((s, o) => s + o.preco, 0) : 0)) * c.qtd), 0);
+            const bairro = document.getElementById('cli-bairro').value;
+            let taxa = bairro === 'centro' ? dadosLoja.taxaCentro : (bairro === 'bairro' ? dadosLoja.taxaBairro : 0);
+            const vDesconto = subtotal * (descontoAplicado / 100);
+            
+            // Lógica do bônus fidelidade
+            let bBonus = totalPedidosFidelidade >= 9; // Se já tem 9, o 10º ganha o bônus
+            let vFidelidade = bBonus ? 15.00 : 0;
+            if(vFidelidade > (subtotal + taxa - vDesconto)) vFidelidade = subtotal + taxa - vDesconto;
+
+            let totalGeral = subtotal + taxa - vDesconto - vFidelidade;
+            if(totalGeral < 0) totalGeral = 0;
+
+            document.getElementById('res-subtotal').innerText = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
+            document.getElementById('res-taxa').innerText = `R$ ${taxa.toFixed(2).replace('.',',')}`;
+            document.getElementById('res-desconto').innerText = `- R$ ${vDesconto.toFixed(2).replace('.',',')}`;
+            
+            if(bBonus) {
+                document.getElementById('lbl-fidelidade').innerText = "🎉 Bônus Fidelidade Ativo:";
+                document.getElementById('res-fidelidade').innerText = `- R$ ${vFidelidade.toFixed(2).replace('.',',')}`;
+            } else {
+                document.getElementById('lbl-fidelidade').innerText = "Bônus Fidelidade (Inativo):";
+                document.getElementById('res-fidelidade').innerText = `R$ 0,00`;
+            }
+            document.getElementById('res-total-geral').innerText = `R$ ${totalGeral.toFixed(2).replace('.',',')}`;
+        }
+
+        function finalizarPedido(event) {
+            event.preventDefault();
+            const nome = document.getElementById('cli-nome').value;
+            const bairro = document.getElementById('cli-bairro').value;
+            const endereco = document.getElementById('cli-endereco').value || "Retirada";
+            const pagamento = document.getElementById('cli-pagamento').value;
+
+            const subtotal = carrinho.reduce((acc, c) => acc + ((c.precoBase + (c.opcionais ? c.opcionais.reduce((s, o) => s + o.preco, 0) : 0)) * c.qtd), 0);
+            let taxa = bairro === 'centro' ? dadosLoja.taxaCentro : (bairro === 'bairro' ? dadosLoja.taxaBairro : 0);
+            const vDesconto = subtotal * (descontoAplicado / 100);
+            let bBonus = totalPedidosFidelidade >= 9;
+            let vFidelidade = bBonus ? 15.00 : 0;
+            let totalGeral = Math.max(0, subtotal + taxa - vDesconto - vFidelidade);
+
+            const idPedidoUnico = "PED-" + Date.now().toString().slice(-5);
+            const strItensBreve = carrinho.map(c => `${c.qtd}x ${c.nome}`).join(', ');
+
+            // SALVA COMPLETO PARA RELATÓRIOS DO PAINEL
+            let historico = JSON.parse(localStorage.getItem('fomezero_pedidos')) || [];
+            historico.push({
+                id: idPedidoUnico, cliente: nome, total: totalGeral, status: 'pendente',
+                pagamento: pagamento, itens: strItensBreve, data: new Date().toISOString().split('T')[0]
+            });
+            localStorage.setItem('fomezero_pedidos', JSON.stringify(historico));
+
+            // Atualiza cartão fidelidade local do cliente
+            if(bBonus) localStorage.setItem('fomezero_fidelidade_qtd', 0);
+            else localStorage.setItem('fomezero_fidelidade_qtd', totalPedidosFidelidade + 1);
+
+            // GERA TEXTO WHATSAPP
+            let txt = `*🔴 NOVO PEDIDO - ${dadosLoja.nome.toUpperCase()}*\n*Código:* #${idPedidoUnico}\n\n*Cliente:* ${nome}\n*Endereço:* ${endereco}\n\n*--- ITENS ---*\n`;
+            carrinho.forEach(c => { txt += `• ${c.qtd}x ${c.nome}\n`; });
+            txt += `\n*👉 TOTAL: R$ ${totalGeral.toFixed(2)}*\n*Pagamento:* ${pagamento}`;
+            
+            let urlRastreio = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1) + `rastreio.html?id=${idPedidoUnico}`;
+            txt += `\n\n*Acompanhe por aqui:* \n${urlRastreio}`;
+
+            let numeroLimpo = dadosLoja.whatsapp.replace(/\D/g, '');
+            window.location.href = `https://api.whatsapp.com/send?phone=${numeroLimpo}&text=${encodeURIComponent(txt)}`;
+        }
+    </script>
+</body>
+</html>

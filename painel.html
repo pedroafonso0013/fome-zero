@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações & Relatórios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: #f3f4f6; color: #1f2937; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        /* Barra de Navegação no Topo */
+        .nav-atalhos { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-link { flex: 1; text-align: center; text-decoration: none; padding: 12px; border-radius: 10px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-link.cardapio { background: #dc2626; }
+        .btn-link.cardapio:hover { background: #b91c1c; }
+        .btn-link.cozinha { background: #3b82f6; }
+        .btn-link.cozinha:hover { background: #2563eb; }
+
+        .secao-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        h2 { font-size: 1.1rem; margin-bottom: 15px; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; color: #4b5563; }
+        input, select, textarea { width: 100%; background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; border-radius: 8px; font-size: 0.85rem; outline: none; }
+        .row-flex { display: flex; gap: 10px; } .row-flex .form-group { flex: 1; }
+        .btn-salvar { width: 100%; background: #111827; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-salvar:hover { background: #1f2937; }
+        
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .dash-card { background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; text-align: center; }
+        .dash-card span { display: block; font-size: 0.75rem; color: #6b7280; }
+        .dash-card strong { font-size: 1.2rem; color: #111827; }
+
+        .item-prod { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f3f4f6; font-size: 0.85rem; }
+        .btn-deletar { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="nav-atalhos">
+            <a href="cardapio.html" class="btn-link cardapio"><i class="fa-solid fa-utensils"></i> Cardápio</a>
+            <a href="admin.html" class="btn-link cozinha"><i class="fa-solid fa-kitchen-set"></i> Cozinha</a>
+            <button onclick="fazerLogout()" class="btn-link" style="background: #475569; border: none; cursor: pointer; flex: 0.5;"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+        </div>
+        
+        <div class="secao-box">
+            <h2><i class="fa-solid fa-chart-line"></i> Caixa & Faturamento Diário</h2>
+            <div class="dash-grid">
+                <div class="dash-card"><span>Faturamento Concluído</span><strong id="dash-faturamento">R$ 0,00</strong></div>
+                <div class="dash-card"><span>Pedidos Concluídos</span><strong id="dash-qtd">0</strong></div>
+            </div>
+            <div id="dash-detalhes-pagamento" style="font-size: 0.75rem; color: #4b5563; line-height: 1.6;"></div>
+        </div>
+
+        <div class="secao-box">
+            <h2><i class="fa-solid fa-store"></i> Horário & Configurações</h2>
+            <form onsubmit="salvarDadosLoja(event)">
+                <div class="form-group">
+                    <label>Controle de Horário Automático:</label>
+                    <select id="loja-auto">
+                        <option value="true">Ativo (Abre e fecha com base na hora do celular)</option>
+                        <option value="false">Manual (Usa o status abaixo)</option>
+                    </select>
+                </div>
+                <div class="row-flex">
+                    <div class="form-group"><label>Hora de Abertura:</label><input type="time" id="loja-abre"></div>
+                    <div class="form-group"><label>Hora de Fechamento:</label><input type="time" id="loja-fecha"></div>
+                </div>
+                <div class="form-group">
+                    <label>Status Manual (Se Automático estiver Inativo):</label>
+                    <select id="loja-aberta"><option value="true">🟢 Aberta</option><option value="false">🔴 Fechada</option></select>
+                </div>
+                <div class="row-flex">
+                    <div class="form-group"><label>Nome da Loja:</label><input type="text" id="loja-nome"></div>
+                    <div class="form-group"><label>WhatsApp da Loja:</label><input type="text" id="loja-wpp"></div>
+                </div>
+                <div class="row-flex">
+                    <div class="form-group"><label>Taxa Centro:</label><input type="number" step="0.01" id="loja-tx-c"></div>
+                    <div class="form-group"><label>Taxa Bairros:</label><input type="number" step="0.01" id="loja-tx-b"></div>
+                </div>
+                <div class="form-group"><label>Chave Pix Copie e Cole:</label><input type="text" id="loja-pix"></div>
+                <button type="submit" class="btn-salvar">Salvar Configurações</button>
+            </form>
+        </div>
+
+        <div class="secao-box">
+            <h2><i class="fa-solid fa-user-gear"></i> Credenciais do Administrador</h2>
+            <form onsubmit="salvarCredenciaisAcesso(event)">
+                <div class="row-flex">
+                    <div class="form-group">
+                        <label>Usuário do Sistema:</label>
+                        <input type="text" id="acesso-user" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Senha do Sistema:</label>
+                        <input type="text" id="acesso-pass" required style="-webkit-text-security: disc;">
+                    </div>
+                </div>
+                <button type="submit" class="btn-salvar" style="background:#0284c7;">Atualizar Dados de Login</button>
+            </form>
+        </div>
+
+        <div class="secao-box">
+            <h2><i class="fa-solid fa-plus"></i> Inserir Lanche</h2>
+            <form onsubmit="cadastrarProduto(event)">
+                <div class="row-flex">
+                    <div class="form-group"><label>Nome:</label><input type="text" id="prod-nome" required></div>
+                    <div class="form-group">
+                        <label>Categoria:</label>
+                        <select id="prod-cat"><option value="Hambúrgueres">Hambúrgueres</option><option value="Bebidas">Bebidas</option><option value="Combos">Combos</option></select>
+                    </div>
+                </div>
+                <div class="row-flex">
+                    <div class="form-group"><label>Preço:</label><input type="number" step="0.01" id="prod-preco" required></div>
+                    <div class="form-group"><label>Foto URL:</label><input type="text" id="prod-foto"></div>
+                </div>
+                <div class="form-group"><label>Descrição:</label><textarea id="prod-desc" required></textarea></div>
+                <div class="form-group"><label>Adicionais (Nome;Preço):</label><textarea id="prod-opc" placeholder="Bacon;3.00&#10;Cheddar;2.50"></textarea></div>
+                <button type="submit" class="btn-salvar" style="background:#16a34a;">Cadastrar Item</button>
+            </form>
+        </div>
+
+        <div class="secao-box">
+            <h2><i class="fa-solid fa-utensils"></i> Itens no Menu</h2>
+            <div id="lista-produtos"></div>
+        </div>
+
+    </div>
+
+    <script>
+        if (sessionStorage.getItem('fomezero_logado') !== 'true') {
+            window.location.href = 'login.html';
+            document.documentElement.style.display = 'none'; 
+        }
+
+        let dadosLoja = JSON.parse(localStorage.getItem('fomezero_loja')) || {
+            nome: "Fome Zero", whatsapp: "5586999999999", aberta: true,
+            taxaCentro: 5.00, taxaBairro: 8.00, cupom: "FOME10", desconto: 10,
+            logo: "", capa: "", chavePix: "", horaAbre: "18:00", horaFecha: "23:30", usarHorarioAuto: true
+        };
+        let produtos = JSON.parse(localStorage.getItem('fomezero_produtos')) || [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('loja-auto').value = dadosLoja.usarHorarioAuto ? "true" : "false";
+            document.getElementById('loja-abre').value = dadosLoja.horaAbre || "18:00";
+            document.getElementById('loja-fecha').value = dadosLoja.horaFecha || "23:30";
+            document.getElementById('loja-aberta').value = dadosLoja.aberta ? "true" : "false";
+            document.getElementById('loja-nome').value = dadosLoja.nome;
+            document.getElementById('loja-wpp').value = dadosLoja.whatsapp;
+            document.getElementById('loja-tx-c').value = dadosLoja.taxaCentro;
+            document.getElementById('loja-tx-b').value = dadosLoja.taxaBairro;
+            document.getElementById('loja-pix').value = dadosLoja.chavePix || '';
+            
+            // Carrega os dados de login atuais nos campos correspondentes
+            document.getElementById('acesso-user').value = localStorage.getItem('fomezero_usuario') || 'admin';
+            document.getElementById('acesso-pass').value = localStorage.getItem('fomezero_senha') || 'admin123';
+            
+            calcularRelatorios(); listarProdutos();
+        });
+
+        function calcularRelatorios() {
+            let pedidos = JSON.parse(localStorage.getItem('fomezero_pedidos')) || [];
+            let concluidos = pedidos.filter(p => p.status === 'entregue');
+            
+            let faturamento = concluidos.reduce((s, p) => s + (p.total || 0), 0);
+            document.getElementById('dash-faturamento').innerText = `R$ ${faturamento.toFixed(2).replace('.',',')}`;
+            document.getElementById('dash-qtd').innerText = concluidos.length;
+
+            let pix = concluidos.filter(p => p.pagamento === 'Pix').length;
+            let cartao = concluidos.filter(p => p.pagamento === 'Cartão').length;
+            let dinheiro = concluidos.filter(p => p.pagamento === 'Dinheiro').length;
+
+            document.getElementById('dash-detalhes-pagamento').innerHTML = `
+                <strong>Divisão por Pagamentos:</strong><br>
+                📱 Pix: ${pix} pedido(s)<br>
+                💳 Cartão: ${cartao} pedido(s)<br>
+                💵 Dinheiro: ${dinheiro} pedido(s)
+            `;
+        }
+
+        function salvarDadosLoja(event) {
+            event.preventDefault();
+            dadosLoja.usarHorarioAuto = document.getElementById('loja-auto').value === "true";
+            dadosLoja.horaAbre = document.getElementById('loja-abre').value;
+            dadosLoja.horaFecha = document.getElementById('loja-fecha').value;
+            dadosLoja.aberta = document.getElementById('loja-aberta').value === "true";
+            dadosLoja.nome = document.getElementById('loja-nome').value;
+            dadosLoja.whatsapp = document.getElementById('loja-wpp').value;
+            dadosLoja.taxaCentro = parseFloat(document.getElementById('loja-tx-c').value) || 0;
+            dadosLoja.taxaBairro = parseFloat(document.getElementById('loja-tx-b').value) || 0;
+            dadosLoja.chavePix = document.getElementById('loja-pix').value;
+
+            localStorage.setItem('fomezero_loja', JSON.stringify(dadosLoja));
+            alert("Configurações da loja salvas!");
+        }
+
+        // NOVA FUNÇÃO: Grava o novo Usuário e Senha digitados pelo comprador
+        function salvarCredenciaisAcesso(event) {
+            event.preventDefault();
+            const novoUser = document.getElementById('acesso-user').value.trim();
+            const novaSenha = document.getElementById('acesso-pass').value.trim();
+
+            localStorage.setItem('fomezero_usuario', novoUser);
+            localStorage.setItem('fomezero_senha', novaSenha);
+            alert("Credenciais de login atualizadas com sucesso!");
+        }
+
+        function cadastrarProduto(event) {
+            event.preventDefault();
+            produtos.push({
+                nome: document.getElementById('prod-nome').value, cat: document.getElementById('prod-cat').value,
+                preco: parseFloat(document.getElementById('prod-preco').value) || 0,
+                foto: document.getElementById('prod-foto').value, desc: document.getElementById('prod-desc').value,
+                opcionais: document.getElementById('prod-opc').value, ativo: true
+            });
+            localStorage.setItem('fomezero_produtos', JSON.stringify(produtos));
+            listarProdutos();
+            event.target.reset();
+        }
+
+        function listarProdutos() {
+            const container = document.getElementById('lista-produtos'); container.innerHTML = '';
+            produtos.forEach((p, index) => {
+                container.innerHTML += `
+                    <div class="item-prod">
+                        <span><strong>${p.nome}</strong> - R$ ${p.preco.toFixed(2)}</span>
+                        <button onclick="deletarProduto(${index})" class="btn-deletar">Remover</button>
+                    </div>
+                `;
+            });
+        }
+
+        function deletarProduto(index) {
+            produtos.splice(index, 1); localStorage.setItem('fomezero_produtos', JSON.stringify(produtos)); listarProdutos();
+        }
+
+        function fazerLogout() {
+            if(confirm("Deseja realmente sair do sistema?")) {
+                sessionStorage.removeItem('fomezero_logado');
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanhar Pedido</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: #f9fafb; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; width: 100%; max-width: 420px; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 1.3rem; color: #111827; }
+        .header p { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+        
+        /* Estrutura dos Passos do Rastreio */
+        .linha-rastreio { position: relative; margin-left: 30px; border-left: 2px dashed #e5e7eb; padding-left: 20px; display: flex; flex-direction: column; gap: 30px; }
+        .passo { position: relative; padding-bottom: 10px; opacity: 0.3; transition: all 0.4s ease; }
+        .passo.ativo { opacity: 1; font-weight: bold; }
+        
+        /* Ícones dos nós */
+        .passo::before { content: ''; position: absolute; left: -31px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #e5e7eb; border: 4px solid white; box-shadow: 0 0 0 2px #e5e7eb; transition: all 0.4s ease; }
+        .passo.ativo::before { background: #16a34a; box-shadow: 0 0 0 2px #16a34a; }
+        
+        .passo h3 { font-size: 0.95rem; color: #1f2937; }
+        .passo p { font-size: 0.75rem; color: #6b7280; font-weight: normal; }
+
+        /* Botão de segurança */
+        .btn-wpp-manual { background: #16a34a; color: white; border: none; padding: 12px; border-radius: 0.75rem; font-size: 0.85rem; font-weight: bold; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; margin-top: 20px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <i class="fa-solid fa-motorcycle" style="font-size: 2.5rem; color: #dc2626; margin-bottom: 10px;"></i>
+            <h1>Acompanhe o seu Pedido</h1>
+            <p id="codigo-pedido">Pedido: #000000</p>
+        </div>
+
+        <div class="linha-rastreio">
+            <div id="status-pendente" class="passo">
+                <h3>Pedido Recebido</h3>
+                <p>Já recebemos o seu pedido na cozinha.</p>
+            </div>
+            <div id="status-preparo" class="passo">
+                <h3>Em Preparo</h3>
+                <p>A sua refeição está a ser montada e embalada.</p>
+            </div>
+            <div id="status-entrega" class="passo">
+                <h3>Saiu para Entrega</h3>
+                <p>O estafeta já iniciou a rota de entrega.</p>
+            </div>
+            <div id="status-entregue" class="passo">
+                <h3>Pedido Entregue</h3>
+                <p>Bom apetite! Obrigado pela preferência.</p>
+            </div>
+        </div>
+
+        <div id="zona-seguranca" class="hidden" style="margin-top: 25px; text-align: center; border-top: 1px dashed #eee; padding-top: 15px;">
+            <p style="font-size: 0.75rem; color: #6b7280; margin-bottom: 10px;">A redirecionar para o WhatsApp... Se não abrir sozinho, clique abaixo:</p>
+            <button onclick="forcarEnvioWpp()" class="btn-wpp-manual">
+                <i class="fa-brands fa-whatsapp"></i> Enviar para o WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const idPedido = urlParams.get('id') || "Não identificado";
+        const deveEnviar = urlParams.get('enviar');
+
+        document.getElementById('codigo-pedido').innerText = `Pedido: #${idPedido}`;
+
+        // Controla visualmente o progresso das etapas
+        function atualizarTelaStatus(statusAtual) {
+            const passos = ['pendente', 'preparo', 'entrega', 'entregue'];
+            let alcancouAtual = true;
+
+            passos.forEach(p => {
+                const elemento = document.getElementById(`status-${p}`);
+                if (!elemento) return;
+                
+                if (alcancouAtual) {
+                    elemento.classList.add('ativo');
+                } else {
+                    elemento.classList.remove('ativo');
+                }
+                if (p === statusAtual) alcancouAtual = false;
+            });
+        }
+
+        // NOVIDADE: Função que procura o estado do pedido em tempo real na memória local
+        function escutarEstadoDoPedido() {
+            const historico = JSON.parse(localStorage.getItem('fomezero_pedidos')) || [];
+            const meuPedido = historico.find(p => p.id === idPedido);
+            
+            if (meuPedido) {
+                atualizarTelaStatus(meuPedido.status);
+            } else {
+                atualizarTelaStatus('pendente'); // Padrão de segurança
+            }
+        }
+
+        // Executa a primeira verificação imediata ao carregar
+        escutarEstadoDoPedido();
+
+        // Fica a verificar automaticamente a cada 2 segundos se o lojista mudou o estado no admin.html
+        setInterval(escutarEstadoDoPedido, 2000);
+
+        // MÁGICA DO FLUXO: Se veio do carrinho, faz o disparo automático para o WhatsApp
+        if (deveEnviar === 'true') {
+            const txt = sessionStorage.getItem('wpp_txt');
+            const numeroLimpo = sessionStorage.getItem('wpp_num');
+            
+            if (txt && numeroLimpo) {
+                window.history.replaceState({}, document.title, `rastreio.html?id=${idPedido}`);
+                document.getElementById('zona-seguranca').classList.remove('hidden');
+                window.location.href = `https://api.whatsapp.com/send?phone=${numeroLimpo}&text=${encodeURIComponent(txt)}`;
+            }
+        }
+
+        function forcarEnvioWpp() {
+            const txt = sessionStorage.getItem('wpp_txt');
+            const numeroLimpo = sessionStorage.getItem('wpp_num');
+            if(txt && numeroLimpo) {
+                window.location.href = `https://api.whatsapp.com/send?phone=${numeroLimpo}&text=${encodeURIComponent(txt)}`;
+            }
+        }
+    </script>
+</body>
+</html>

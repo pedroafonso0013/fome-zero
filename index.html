@@ -9,21 +9,15 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background: #f8fafc; color: #1e293b; padding-bottom: 80px; }
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        
-        /* Header da Loja */
         .loja-header { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; position: relative; }
         .loja-header h1 { font-size: 1.5rem; color: #0f172a; font-weight: 800; }
         .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; }
         .status-badge.aberto { background: #dcfce7; color: #15803d; }
         .status-badge.fechado { background: #fee2e2; color: #b91c1c; }
-        
-        /* Categorias */
         .categorias-nav { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
         .categorias-nav::-webkit-scrollbar { display: none; }
         .cat-btn { background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; color: #64748b; }
         .cat-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
-        
-        /* Lista de Produtos */
         .produto-card { background: white; border-radius: 12px; padding: 12px; margin-bottom: 12px; display: flex; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
         .produto-img { width: 90px; height: 90px; border-radius: 8px; object-fit: cover; background: #e2e8f0; flex-shrink: 0; }
         .produto-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
@@ -31,23 +25,25 @@
         .produto-desc { font-size: 0.8rem; color: #64748b; margin: 4px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .produto-preco { font-size: 1rem; font-weight: 700; color: #dc2626; }
         .btn-add { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; align-self: flex-end; }
-        
-        /* Barra do Carrinho Fixa */
         .barra-carrinho { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); padding: 15px; display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto; border-top: 1px solid #e2e8f0; z-index: 99; }
         .btn-ver-carrinho { background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        
-        /* Modal do Carrinho */
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: flex-end; z-index: 100; }
         .modal-content { background: white; width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         .modal-fechar { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; }
-        
-        /* Formulário de Finalização */
         .form-group { margin-top: 12px; text-align: left; }
         .form-group label { display: block; font-size: 0.75rem; font-weight: bold; color: #475569; margin-bottom: 4px; }
         input, select, textarea { width: 100%; background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; font-size: 0.85rem; outline: none; }
         .item-carrinho { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
     </style>
+    
+    <script>
+        window.onerror = function(msg, url, line) {
+            alert("🚨 ERRO DETECTADO NO CELULAR:\n\n" + msg + "\n\nLinha: " + line + "\nArquivo: " + url);
+            return false;
+        };
+    </script>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="config.js"></script>
@@ -66,24 +62,22 @@
         let categoriaAtual = "Todos";
         let taxaEntregaSelecionada = 0;
 
-        // SE NÃO TIVER LOJA NO LINK: Tela de busca inteligente
         if (!lojaId) {
             document.getElementById('layout-principal').innerHTML = `
                 <div style="max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e2e8f0;">
                     <i class="fa-solid fa-utensils" style="font-size: 2.5rem; color: #dc2626; background: #fee2e2; padding: 15px; border-radius: 50%; margin-bottom: 15px;"></i>
                     <h2 style="font-size: 1.3rem; margin-bottom: 8px; color: #0f172a; font-weight:800;">Ver Cardápio Digital</h2>
-                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Digite o nome da lanchonete abaixo para abrir o menu:</p>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Digite o nome da lanchonete abaixo:</p>
                     <input type="text" id="id-loja-menu" placeholder="Ex: testeloja" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; margin-bottom: 15px; outline: none; text-align: center;">
                     <button onclick="abrirMenuFallback()" style="width: 100%; background: #dc2626; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer;">Visualizar Cardápio</button>
                 </div>
             `;
         } else {
-            // LINK OK: Inicializa o cardápio digital
             document.getElementById('layout-principal').innerHTML = `
                 <div class="container">
                     <div class="loja-header">
                         <h1 id="nome-loja-txt">Carregando...</h1>
-                        <div id="status-loja-badge" class="status-badge">Aguardando...</div>
+                        <div id="status-loja-badge" class="status-badge">Aguardando Conexão...</div>
                     </div>
                     <div class="categorias-nav" id="lista-categorias"></div>
                     <div id="lista-produtos-cards"></div>
@@ -110,11 +104,11 @@
                                     <option value="bairro">Entrega Outros Bairros</option>
                                 </select>
                             </div>
-                            <div class="form-group"><label>Endereço Completo (Rua, Número, Bairro):</label><input type="text" id="cli-end" placeholder="Não necessário se for retirada"></div>
+                            <div class="form-group"><label>Endereço Completo:</label><input type="text" id="cli-end" placeholder="Não necessário se for retirada"></div>
                             <div class="form-group"><label>Forma de Pagamento:</label>
                                 <select id="cli-pgto" required>
-                                    <option value="Pix">Pix (Chave será informada)</option>
-                                    <option value="Cartão de Crédito/Débito">Cartão de Crédito/Débito</option>
+                                    <option value="Pix">Pix</option>
+                                    <option value="Cartão">Cartão de Crédito/Débito</option>
                                     <option value="Dinheiro">Dinheiro</option>
                                 </select>
                             </div>
@@ -123,7 +117,13 @@
                     </div>
                 </div>
             `;
-            inicializarCardapio();
+            
+            // Verifica se o config.js realmente criou a variável database
+            if (typeof database === 'undefined') {
+                alert("🚨 CRÍTICO: A variável 'database' não existe! O seu arquivo config.js está com problemas ou não carregou.");
+            } else {
+                inicializarCardapio();
+            }
         }
 
         function abrirMenuFallback() {
@@ -157,9 +157,7 @@
                     selectTaxa.options[2].text = `Entrega Outros Bairros (R$ ${dadosLoja.taxaBairro.toFixed(2).replace('.',',')})`;
                 }
             }, (error) => {
-                document.getElementById('nome-loja-txt').innerText = "Erro de Regras do Firebase";
-                alert("Aviso: Verifique as regras do Realtime Database no painel do seu Firebase!");
-                console.error(error);
+                alert("Bloqueio do Firebase: " + error.message);
             });
 
             database.ref('lojas/' + lojaId + '/produtos').on('value', (snapshot) => {
@@ -171,7 +169,6 @@
         function renderizacaoCompleta() {
             const catsNav = document.getElementById('lista-categorias');
             if(!catsNav) return;
-            
             const listaCats = ["Todos", ...new Set(produtos.filter(p => p && p.ativo).map(p => p.cat))];
             catsNav.innerHTML = '';
             listaCats.forEach(cat => {
@@ -181,7 +178,6 @@
 
             const prodContainer = document.getElementById('lista-produtos-cards');
             prodContainer.innerHTML = '';
-            
             produtos.forEach((p, index) => {
                 if (p && p.ativo && (categoriaAtual === "Todos" || p.cat === categoriaAtual)) {
                     const fotoValida = p.foto ? p.foto : 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=300';
@@ -204,39 +200,24 @@
             });
         }
 
-        function filtrarCategoria(cat) {
-            categoriaAtual = cat;
-            renderizacaoCompleta();
-        }
+        function filtrarCategoria(cat) { categoriaAtual = cat; renderizacaoCompleta(); }
 
         function adicionarAoCarrinho(index) {
             const prod = produtos[index];
             const itemExistente = carrinho.find(item => item.index === index);
-            if (itemExistente) {
-                itemExistente.qtd++;
-            } else {
-                carrinho.push({ index, nome: prod.nome, preco: prod.preco, qtd: 1 });
-            }
+            if (itemExistente) { itemExistente.qtd++; } else { carrinho.push({ index, nome: prod.nome, preco: prod.preco, qtd: 1 }); }
             atualizarInterfaceCarrinho();
         }
 
         function atualizarInterfaceCarrinho() {
             const barra = document.getElementById('barra-carrinho');
             if (!barra) return;
-            
-            if (carrinho.length === 0) {
-                barra.style.display = "none";
-                return;
-            }
+            if (carrinho.length === 0) { barra.style.display = "none"; return; }
             barra.style.display = "flex";
-
-            let subtotal = 0;
-            let totalQtd = 0;
+            let subtotal = 0; let totalQtd = 0;
             carrinho.forEach(item => { subtotal += (item.preco * item.qtd); totalQtd += item.qtd; });
-
             document.getElementById('barra-total').innerText = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
             document.getElementById('barra-qtd').innerText = totalQtd;
-            
             document.getElementById('check-subtotal').innerText = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
             document.getElementById('check-taxa').innerText = `R$ ${taxaEntregaSelecionada.toFixed(2).replace('.',',')}`;
             document.getElementById('check-total-geral').innerText = `R$ ${(subtotal + taxaEntregaSelecionada).toFixed(2).replace('.',',')}`;
@@ -250,73 +231,37 @@
         }
 
         function abrirModalCarrinho() {
-            const container = document.getElementById('itens-checkout');
-            container.innerHTML = '';
+            const container = document.getElementById('itens-checkout'); container.innerHTML = '';
             carrinho.forEach(item => {
-                container.innerHTML += `
-                    <div class="item-carrinho">
-                        <span>${item.qtd}x ${item.nome}</span>
-                        <strong>R$ ${(item.preco * item.qtd).toFixed(2).replace('.',',')}</strong>
-                    </div>
-                `;
+                container.innerHTML += `<div class="item-carrinho"><span>${item.qtd}x ${item.nome}</span><strong>R$ ${(item.preco * item.qtd).toFixed(2).replace('.',',')}</strong></div>`;
             });
             document.getElementById('modal-carrinho').style.display = "flex";
         }
-
         function fecharModalCarrinho() { document.getElementById('modal-carrinho').style.display = "none"; }
 
         function enviarPedidoWhatsApp(event) {
             event.preventDefault();
-            if(!dadosLoja.aberta) {
-                alert("A lanchonete está fechada no momento. O pedido não poderá ser processado.");
-                return;
-            }
-
+            if(!dadosLoja.aberta) { alert("A lanchonete está fechada."); return; }
             const nome = document.getElementById('cli-nome').value.trim();
             const endereco = document.getElementById('cli-end').value.trim();
             const pgto = document.getElementById('cli-pgto').value;
             const tipoEntrega = document.getElementById('cli-taxa').value;
 
-            let textoPedido = `*🍔 NOVO PEDIDO - ${dadosLoja.nome.toUpperCase()}* \n\n`;
-            textoPedido += `*Cliente:* ${nome}\n`;
-            textoPedido += `-----------------------------\n`;
-            
+            let textoPedido = `*🍔 NOVO PEDIDO - ${dadosLoja.nome.toUpperCase()}* \n\n*Cliente:* ${nome}\n-----------------------------\n`;
             let subtotal = 0;
             carrinho.forEach(item => {
                 textoPedido += `👉 ${item.qtd}x ${item.nome} (R$ ${(item.preco * item.qtd).toFixed(2)})\n`;
                 subtotal += (item.preco * item.qtd);
             });
-
-            textoPedido += `-----------------------------\n`;
-            textoPedido += `*Subtotal:* R$ ${subtotal.toFixed(2)}\n`;
-            textoPedido += `*Taxa de Entrega:* R$ ${taxaEntregaSelecionada.toFixed(2)}\n`;
-            textoPedido += `*Total Geral:* R$ ${(subtotal + taxaEntregaSelecionada).toFixed(2)}\n\n`;
-            
-            if(tipoEntrega === "0") {
-                textoPedido += `📍 *Forma:* Retirada no Balcão\n`;
-            } else {
-                textoPedido += `📍 *Endereço:* ${endereco}\n`;
-            }
+            textoPedido += `-----------------------------\n*Subtotal:* R$ ${subtotal.toFixed(2)}\n*Taxa de Entrega:* R$ ${taxaEntregaSelecionada.toFixed(2)}\n*Total Geral:* R$ ${(subtotal + taxaEntregaSelecionada).toFixed(2)}\n\n`;
+            if(tipoEntrega === "0") { textoPedido += `📍 *Forma:* Retirada\n`; } else { textoPedido += `📍 *Endereço:* ${endereco}\n`; }
             textoPedido += `💳 *Pagamento:* ${pgto}\n`;
 
-            if(pgto === "Pix" && dadosLoja.chavePix) {
-                textoPedido += `\n🔑 *Chave Pix Copie e Cole:* \n\`${dadosLoja.chavePix}\`\n`;
-            }
-
             const novoPedidoRef = database.ref('lojas/' + lojaId + '/pedidos').push();
-            novoPedidoRef.set({
-                cliente: nome,
-                total: (subtotal + taxaEntregaSelecionada),
-                status: 'entregue',
-                data: new Date().toLocaleDateString()
-            });
+            novoPedidoRef.set({ cliente: nome, total: (subtotal + taxaEntregaSelecionada), status: 'entregue', data: new Date().toLocaleDateString() });
 
-            const urlWpp = `https://api.whatsapp.com/send?phone=${dadosLoja.whatsapp}&text=${encodeURIComponent(textoPedido)}`;
-            window.open(urlWpp, '_blank');
-            
-            carrinho = [];
-            atualizarInterfaceCarrinho();
-            fecharModalCarrinho();
+            window.open(`https://api.whatsapp.com/send?phone=${dadosLoja.whatsapp}&text=${encodeURIComponent(textoPedido)}`, '_blank');
+            carrinho = []; atualizarInterfaceCarrinho(); fecharModalCarrinho();
         }
     </script>
 </body>

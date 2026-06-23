@@ -1,10 +1,5 @@
 const firebaseConfig = {
-  // Cole o link que apareceu exatamente aqui dentro das aspas:
-  databaseURL: "https://fome-zero-b220c-default-rtdb.firebaseio.com/
-:
-null", 
-  
-  // As outras chaves abaixo você pega nas configurações do projeto (veja o passo abaixo)
+  databaseURL: "https://fome-zero-b220c-default-rtdb.firebaseio.com/:null", 
   apiKey: "AIzaSyDiai4Zh0bl4sjMINPR5JFjJyB1D3MJVlk",
   authDomain: "fome-zero-b220c.firebaseapp.com",
   databaseURL: "https://fome-zero-b220c-default-rtdb.firebaseio.com",

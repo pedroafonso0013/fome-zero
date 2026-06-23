@@ -133,7 +133,15 @@
 
         function inicializarCardapio() {
             database.ref('lojas/' + lojaId + '/loja').on('value', (snapshot) => {
-                dadosLoja = snapshot.val() || { nome: "Fome Zero", aberta: true, taxaCentro: 0, taxaBairro: 0, whatsapp: "" };
+                const dadosBrutos = snapshot.val() || {};
+                dadosLoja = {
+                    nome: dadosBrutos.nome || "Fome Zero",
+                    aberta: dadosBrutos.aberta !== false,
+                    taxaCentro: Number(dadosBrutos.taxaCentro) || 0,
+                    taxaBairro: Number(dadosBrutos.taxaBairro) || 0,
+                    whatsapp: dadosBrutos.whatsapp || ""
+                };
+
                 document.getElementById('nome-loja-txt').innerText = dadosLoja.nome;
                 
                 const badge = document.getElementById('status-loja-badge');
@@ -142,6 +150,183 @@
                 } else {
                     badge.className = "status-badge fechado"; badge.innerText = "🔴 FECHADO NO MOMENTO";
                 }
+
+                const selectTaxa = document.getElementById('cli-taxa');
+                if(selectTaxa) {
+                    selectTaxa.options[1].text = `Entrega Região Centro (R$ ${dadosLoja.taxaCentro.toFixed(2).replace('.',',')})`;
+                    selectTaxa.options[2].text = `Entrega Outros Bairros (R$ ${dadosLoja.taxaBairro.toFixed(2).replace('.',',')})`;
+                }
+            }, (error) => {
+                document.getElementById('nome-loja-txt').innerText = "Erro de Regras do Firebase";
+                alert("Aviso: Verifique as regras do Realtime Database no painel do seu Firebase!");
+                console.error(error);
+            });
+
+            database.ref('lojas/' + lojaId + '/produtos').on('value', (snapshot) => {
+                produtos = snapshot.val() || [];
+                renderizacaoCompleta();
+            });
+        }
+
+        function renderizacaoCompleta() {
+            const catsNav = document.getElementById('lista-categorias');
+            if(!catsNav) return;
+            
+            const listaCats = ["Todos", ...new Set(produtos.filter(p => p && p.ativo).map(p => p.cat))];
+            catsNav.innerHTML = '';
+            listaCats.forEach(cat => {
+                const activeClass = cat === categoriaAtual ? 'active' : '';
+                catsNav.innerHTML += `<button class="cat-btn ${activeClass}" onclick="filtrarCategoria('${cat}')">${cat}</button>`;
+            });
+
+            const prodContainer = document.getElementById('lista-produtos-cards');
+            prodContainer.innerHTML = '';
+            
+            produtos.forEach((p, index) => {
+                if (p && p.ativo && (categoriaAtual === "Todos" || p.cat === categoriaAtual)) {
+                    const fotoValida = p.foto ? p.foto : 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=300';
+                    prodContainer.innerHTML += `
+                        <div class="produto-card">
+                            <img src="${fotoValida}" class="produto-img">
+                            <div class="produto-info">
+                                <div>
+                                    <div class="produto-nome">${p.nome}</div>
+                                    <div class="produto-desc">${p.desc}</div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                                    <span class="produto-preco">R$ ${p.preco.toFixed(2).replace('.',',')}</span>
+                                    <button class="btn-add" onclick="adicionarAoCarrinho(${index})">+ Adicionar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function filtrarCategoria(cat) {
+            categoriaAtual = cat;
+            renderizacaoCompleta();
+        }
+
+        function adicionarAoCarrinho(index) {
+            const prod = produtos[index];
+            const itemExistente = carrinho.find(item => item.index === index);
+            if (itemExistente) {
+                itemExistente.qtd++;
+            } else {
+                carrinho.push({ index, nome: prod.nome, preco: prod.preco, qtd: 1 });
+            }
+            atualizarInterfaceCarrinho();
+        }
+
+        function atualizarInterfaceCarrinho() {
+            const barra = document.getElementById('barra-carrinho');
+            if (!barra) return;
+            
+            if (carrinho.length === 0) {
+                barra.style.display = "none";
+                return;
+            }
+            barra.style.display = "flex";
+
+            let subtotal = 0;
+            let totalQtd = 0;
+            carrinho.forEach(item => { subtotal += (item.preco * item.qtd); totalQtd += item.qtd; });
+
+            document.getElementById('barra-total').innerText = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
+            document.getElementById('barra-qtd').innerText = totalQtd;
+            
+            document.getElementById('check-subtotal').innerText = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
+            document.getElementById('check-taxa').innerText = `R$ ${taxaEntregaSelecionada.toFixed(2).replace('.',',')}`;
+            document.getElementById('check-total-geral').innerText = `R$ ${(subtotal + taxaEntregaSelecionada).toFixed(2).replace('.',',')}`;
+        }
+
+        function atualizarTaxaEntrega(valor) {
+            if (valor === "centro") taxaEntregaSelecionada = dadosLoja.taxaCentro;
+            else if (valor === "bairro") taxaEntregaSelecionada = dadosLoja.taxaBairro;
+            else taxaEntregaSelecionada = 0;
+            atualizarInterfaceCarrinho();
+        }
+
+        function abrirModalCarrinho() {
+            const container = document.getElementById('itens-checkout');
+            container.innerHTML = '';
+            carrinho.forEach(item => {
+                container.innerHTML += `
+                    <div class="item-carrinho">
+                        <span>${item.qtd}x ${item.nome}</span>
+                        <strong>R$ ${(item.preco * item.qtd).toFixed(2).replace('.',',')}</strong>
+                    </div>
+                `;
+            });
+            document.getElementById('modal-carrinho').style.display = "flex";
+        }
+
+        function fecharModalCarrinho() { document.getElementById('modal-carrinho').style.display = "none"; }
+
+        function enviarPedidoWhatsApp(event) {
+            event.preventDefault();
+            if(!dadosLoja.aberta) {
+                alert("A lanchonete está fechada no momento. O pedido não poderá ser processado.");
+                return;
+            }
+
+            const nome = document.getElementById('cli-nome').value.trim();
+            const endereco = document.getElementById('cli-end').value.trim();
+            const pgto = document.getElementById('cli-pgto').value;
+            const tipoEntrega = document.getElementById('cli-taxa').value;
+
+            let textoPedido = `*🍔 NOVO PEDIDO - ${dadosLoja.nome.toUpperCase()}* \n\n`;
+            textoPedido += `*Cliente:* ${nome}\n`;
+            textoPedido += `-----------------------------\n`;
+            
+            let subtotal = 0;
+            carrinho.forEach(item => {
+                textoPedido += `👉 ${item.qtd}x ${item.nome} (R$ ${(item.preco * item.qtd).toFixed(2)})\n`;
+                subtotal += (item.preco * item.qtd);
+            });
+
+            textoPedido += `-----------------------------\n`;
+            textoPedido += `*Subtotal:* R$ ${subtotal.toFixed(2)}\n`;
+            textoPedido += `*Taxa de Entrega:* R$ ${taxaEntregaSelecionada.toFixed(2)}\n`;
+            textoPedido += `*Total Geral:* R$ ${(subtotal + taxaEntregaSelecionada).toFixed(2)}\n\n`;
+            
+            if(tipoEntrega === "0") {
+                textoPedido += `📍 *Forma:* Retirada no Balcão\n`;
+            } else {
+                textoPedido += `📍 *Endereço:* ${endereco}\n`;
+            }
+            textoPedido += `💳 *Pagamento:* ${pgto}\n`;
+
+            if(pgto === "Pix" && dadosLoja.chavePix) {
+                textoPedido += `\n🔑 *Chave Pix Copie e Cole:* \n\`${dadosLoja.chavePix}\`\n`;
+            }
+
+            const novoPedidoRef = database.ref('lojas/' + lojaId + '/pedidos').push();
+            novoPedidoRef.set({
+                cliente: nome,
+                total: (subtotal + taxaEntregaSelecionada),
+                status: 'entregue',
+                data: new Date().toLocaleDateString()
+            });
+
+            const urlWpp = `https://api.whatsapp.com/send?phone=${dadosLoja.whatsapp}&text=${encodeURIComponent(textoPedido)}`;
+            window.open(urlWpp, '_blank');
+            
+            carrinho = [];
+            atualizarInterfaceCarrinho();
+            fecharModalCarrinho();
+        }
+    </script>
+</body>
+</html>
+function abrirMenuFallback() {
+            const id = document.getElementById('id-loja-menu').value.trim().toLowerCase();
+            if (id) { window.location.href = 'index.html?loja=' + id; }
+        }
+
+        ⁠https://fomezerodigital.github.io/fome-zero/login.html?loja=nomedaloja
 
                 // Ajusta as opções do select de taxas com os valores corretos vindos do admin
                 const selectTaxa = document.getElementById('cli-taxa');

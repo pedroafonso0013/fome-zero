@@ -3,154 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle - Cozinha</title>
+    <title>Painel da Cozinha - Monitor SaaS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background: #f3f4f6; color: #1f2937; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 20px; border-radius: 12px; }
-        .header h1 { font-size: 1.2rem; color: #dc2626; display: flex; align-items: center; gap: 8px; }
-        .btn-limpar { background: #9ca3af; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
-        
-        .lista-pedidos { display: flex; flex-direction: column; gap: 15px; }
-        .card-pedido { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid #e5e7eb; }
-        .card-pedido.pendente { border-left-color: #f59e0b; }
-        .card-pedido.preparo { border-left-color: #3b82f6; }
-        .card-pedido.entrega { border-left-color: #8b5cf6; }
-        .card-pedido.entregue { border-left-color: #10b981; }
-
-        .pedido-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px dashed #f3f4f6; padding-bottom: 6px; }
-        .pedido-id { font-weight: bold; font-size: 0.95rem; }
-        .badge-status { font-size: 0.65rem; padding: 3px 8px; border-radius: 50px; font-weight: bold; text-transform: uppercase; }
-        .badge-status.pendente { background: #fef3c7; color: #d97706; }
-        .badge-status.preparo { background: #dbeafe; color: #2563eb; }
-        .badge-status.entrega { background: #f3e8ff; color: #7c3aed; }
-        .badge-status.entregue { background: #d1fae5; color: #059669; }
-
-        .pedido-corpo { font-size: 0.85rem; margin: 8px 0; color: #4b5563; }
-        .pedido-total { font-weight: bold; color: #111827; font-size: 0.9rem; margin-top: 4px; display: block;}
-
-        .acoes { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
-        .btn-acao { flex: 1; min-width: 80px; border: none; padding: 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; color: white; }
-        .btn-preparo { background: #3b82f6; }
-        .btn-entrega { background: #8b5cf6; }
-        .btn-entregue { background: #10b981; }
-        .btn-imprimir { background: #111827; }
-        
-        .sem-pedidos { text-align: center; padding: 40px; color: #9ca3af; font-size: 0.9rem; background: white; border-radius: 12px; }
+        body { background: #0f172a; color: #f8fafc; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
+        .topo h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
+        .btn-voltar { background: #334155; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .pedido-card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
+        .pedido-topo { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 6px; font-size: 0.85rem; color: #94a3b8; }
+        .pedido-itens { margin: 10px 0; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; font-size: 0.9rem; border-left: 3px solid #dc2626; }
+        .pedido-info { font-size: 0.8rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px; }
+        .pedido-acoes { display: flex; gap: 8px; }
+        .btn-acao { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; color: white; }
+        .btn-status-pendente { background: #ea580c; }
+        .btn-status-concluir { background: #16a34a; }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
 </head>
 <body>
 
     <div class="container">
-        <div class="header">
-            <h1><i class="fa-solid fa-clipboard-list"></i> Painel da Cozinha</h1>
-            <button onclick="limparHistorico()" class="btn-limpar"><i class="fa-solid fa-trash"></i> Reset</button>
+        <div class="topo">
+            <h1><i class="fa-solid fa-kitchen-set" style="color:#ef4444;"></i> Pedidos da Cozinha</h1>
+            <a id="btn-config" href="#" class="btn-voltar"><i class="fa-solid fa-gear"></i> Painel</a>
         </div>
-        <div id="lista-pedidos-container" class="lista-pedidos"></div>
+
+        <div id="lista-pedidos-cozinha"><p style="text-align:center; color:#94a3b8; margin-top:40px;">Carregando monitor de pedidos...</p></div>
     </div>
 
     <script>
-        // 🔐 TRANCA DE SEGURANÇA NO TOPO
-        if (sessionStorage.getItem('fomezero_logado') !== 'true') {
-            window.location.href = 'login.html';
-            document.documentElement.style.display = 'none'; 
+        const urlParams = new URLSearchParams(window.location.search);
+        const lojaId = urlParams.get('loja');
+
+        if (sessionStorage.getItem('fomezero_logado_' + lojaId) !== 'true') {
+            window.location.href = 'login.html?loja=' + lojaId;
         }
 
-        let totalPedidosAntigo = 0;
+        document.getElementById('btn-config').href = 'painel.html?loja=' + lojaId;
 
-        function tocarSinoSom() {
-            try {
-                let ctx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = ctx.createOscillator(); let gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = "sine"; 
-                osc.frequency.setValueAtTime(587.33, ctx.currentTime); 
-                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12); 
-                gain.gain.setValueAtTime(0.6, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
-            } catch(e) { console.log("Aguardando clique inicial para ativar som."); }
-        }
-
-        function carregarPedidos() {
-            const container = document.getElementById('lista-pedidos-container');
-            let pedidos = JSON.parse(localStorage.getItem('fomezero_pedidos')) || [];
-            
-            if(pedidos.length > totalPedidosAntigo && totalPedidosAntigo !== 0) {
-                tocarSinoSom();
-            }
-            totalPedidosAntigo = pedidos.length;
-
-            if (pedidos.length === 0) {
-                container.innerHTML = `<div class="sem-pedidos">Nenhum pedido na fila.</div>`; return;
-            }
-
-            container.innerHTML = '';
-            [...pedidos].reverse().forEach(p => {
-                let txtStatus = p.status === 'preparo' ? 'Em Preparo' : p.status === 'entrega' ? 'Na Rua' : p.status === 'entregue' ? 'Entregue' : 'Pendente';
-                container.innerHTML += `
-                    <div class="card-pedido ${p.status}">
-                        <div class="pedido-topo">
-                            <span class="pedido-id">#${p.id} - ${p.cliente || 'Cliente'}</span>
-                            <span class="badge-status ${p.status}">${txtStatus}</span>
-                        </div>
-                        <div class="pedido-corpo">
-                            <strong>Itens:</strong> ${p.itens || 'Ver no WhatsApp'}<br>
-                            <span class="pedido-total">Total: R$ ${(p.total || 0).toFixed(2).replace('.', ',')}</span>
-                        </div>
-                        <div class="acoes">
-                            <button onclick="imprimirCupom('${p.id}')" class="btn-acao btn-imprimir"><i class="fa-solid fa-print"></i></button>
-                            ${p.status === 'pendente' ? `<button onclick="mudarEstado('${p.id}', 'preparo')" class="btn-acao btn-preparo">Preparar</button>` : ''}
-                            ${p.status === 'preparo' ? `<button onclick="mudarEstado('${p.id}', 'entrega')" class="btn-acao btn-entrega">Despachar</button>` : ''}
-                            ${p.status === 'entrega' ? `<button onclick="mudarEstado('${p.id}', 'entregue')" class="btn-acao btn-entregue">Concluir</button>` : ''}
-                        </div>
-                    </div>
-                `;
+        document.addEventListener("DOMContentLoaded", () => {
+            database.ref('lojas/' + lojaId + '/pedidos').on('value', (snapshot) => {
+                const pedidosObjeto = snapshot.val();
+                renderizarPedidosCozinha(pedidosObjeto);
             });
+        });
+
+        function renderizarPedidosCozinha(pedidosObjeto) {
+            const container = document.getElementById('lista-pedidos-cozinha');
+            container.innerHTML = '';
+
+            if(!pedidosObjeto) {
+                container.innerHTML = "<p style='text-align:center; color:#94a3b8; margin-top:40px;'>Nenhum pedido pendente na cozinha! 😴</p>";
+                return;
+            }
+
+            Object.keys(pedidosObjeto).reverse().forEach(id => {
+                const p = pedidosObjeto[id];
+                
+                if(p.status !== 'entregue') {
+                    let itensTxt = '';
+                    p.itens.forEach(i => { itensTxt += `<div>• ${i.qtd}x ${i.nome}</div>`; });
+
+                    let acaoBotao = p.status === 'pendente' 
+                        ? `<button onclick="mudarStatusPedido('${id}', 'preparo')" class="btn-acao btn-status-pendente">⚡ Começar Preparo</button>`
+                        : `<button onclick="mudarStatusPedido('${id}', 'entregue')" class="btn-acao btn-status-concluir">✓ Concluir / Entregue</button>`;
+
+                    let statusNome = p.status === 'pendente' ? '⏳ Pendente' : '🍳 Em Preparo';
+
+                    container.innerHTML += `
+                        <div class="pedido-card">
+                            <div class="pedido-topo">
+                                <span>Status: <strong>${statusNome}</strong></span>
+                                <span>Total: <strong>R$ ${p.total.toFixed(2)}</strong></span>
+                            </div>
+                            <div class="pedido-info">
+                                <strong>Cliente:</strong> ${p.cliente} (${p.telefone})<br>
+                                <strong>Endereço:</strong> ${p.endereco}<br>
+                                <strong>Pagamento:</strong> ${p.pagamento} | <strong>Taxa:</strong> R$ ${p.taxa.toFixed(2)}
+                            </div>
+                            <div class="pedido-itens">${itensTxt}</div>
+                            <div class="pedido-acoes">${acaoBotao}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            if(container.innerHTML === '') {
+                container.innerHTML = "<p style='text-align:center; color:#94a3b8; margin-top:40px;'>Nenhum pedido pendente na cozinha! 😴</p>";
+            }
         }
 
-        function mudarEstado(id, novoEstado) {
-            let pedidos = JSON.parse(localStorage.getItem('fomezero_pedidos')) || [];
-            localStorage.setItem('fomezero_pedidos', JSON.stringify(pedidos.map(p => { if(p.id === id) p.status = novoEstado; return p; })));
-            carregarPedidos();
+        function mudarStatusPedido(id, novoStatus) {
+            // Atualiza diretamente a nuvem, o painel lê de lá e atualiza o faturamento na hora!
+            database.ref('lojas/' + lojaId + '/pedidos/' + id).update({ status: novoStatus });
         }
-
-        function imprimirCupom(id) {
-            let pedidos = JSON.parse(localStorage.getItem('fomezero_pedidos')) || [];
-            let p = pedidos.find(item => item.id === id);
-            if(!p) return;
-
-            let janelaPrint = window.open('', '', 'width=300,height=400');
-            janelaPrint.document.write(`
-                <html><head><style>
-                    body { font-family: monospace; font-size: 12px; width: 100%; margin:0; padding:10px; }
-                    .text-center { text-align: center; }
-                    .linha { border-top: 1px dashed #000; margin: 5px 0; }
-                </style></head><body>
-                    <div class="text-center"><strong>=== LANCHONETE ===</strong><br>Cupom de Produção</div>
-                    <div class="linha"></div>
-                    <strong>Pedido:</strong> #${p.id}<br>
-                    <strong>Cliente:</strong> ${p.cliente || 'Geral'}<br>
-                    <strong>Pagamento:</strong> ${p.pagamento || 'Não informado'}<br>
-                    <div class="linha"></div>
-                    <strong>ITENS:</strong><br>${p.itens || 'Consultar'}<br>
-                    <div class="linha"></div>
-                    <strong>TOTAL GERAL: R$ ${(p.total || 0).toFixed(2)}</strong>
-                    <div class="text-center" style="margin-top:20px;">* Obrigado *</div>
-                    <script>window.print(); window.close();<\/script>
-                </body></html>
-            `);
-            janelaPrint.document.close();
-        }
-
-        function limparHistorico() {
-            if(confirm("Zerar todos os pedidos?")) { localStorage.removeItem('fomezero_pedidos'); carregarPedidos(); }
-        }
-
-        document.body.addEventListener('click', () => { carregarPedidos(); }, {once: true});
-        carregarPedidos(); setInterval(carregarPedidos, 4000);
     </script>
 </body>
 </html>

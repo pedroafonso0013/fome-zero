@@ -7,30 +7,46 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background: #f8fafc; color: #0f172a; padding-bottom: 80px; }
-        header { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; padding: 30px 20px; text-align: center; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        header h1 { font-size: 1.6rem; font-weight: 800; }
-        header p { font-size: 0.85rem; opacity: 0.9; margin-top: 4px; }
-        .status-loja { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 10px; background: rgba(255,255,255,0.2); }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .categoria-titulo { font-size: 1.1rem; font-weight: 700; margin: 20px 0 10px 0; color: #1e293b; display: flex; align-items: center; gap: 8px; }
-        .produto-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 12px; display: flex; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .produto-info { flex: 1; }
-        .produto-info h3 { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
-        .produto-info p { font-size: 0.8rem; color: #64748b; margin: 4px 0 8px 0; line-height: 1.4; }
-        .produto-preco { font-size: 1rem; font-weight: bold; color: #16a34a; }
-        .produto-foto { width: 80px; height: 80px; background: #e2e8f0; border-radius: 8px; object-fit: cover; }
-        .btn-adicionar { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; float: right; }
-        .barra-carrinho { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding: 15px 20px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 999; }
-        .btn-ver-carrinho { background: #16a34a; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .modal { position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: flex-end; }
-        .modal-conteudo { background: white; width: 100%; max-width: 600px; margin: 0 auto; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 24px; max-height: 85vh; overflow-y: auto; }
-        .modal-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
-        .fechar-modal { font-size: 1.5rem; cursor: pointer; color: #64748b; }
-        .item-carrinho { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-        .form-pedido { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .form-pedido input, .form-pedido select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none; }
-        .btn-finalizar { background: #16a34a; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; width: 100%; margin-top: 15px; cursor: pointer; font-size: 0.95rem; }
+        body { background: #f8fafc; color: #1e293b; padding-bottom: 80px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+        
+        /* Header da Loja */
+        .loja-header { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; position: relative; }
+        .loja-header h1 { font-size: 1.5rem; color: #0f172a; font-weight: 800; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; }
+        .status-badge.aberto { background: #dcfce7; color: #15803d; }
+        .status-badge.fechado { background: #fee2e2; color: #b91c1c; }
+        
+        /* Categorias */
+        .categorias-nav { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
+        .categorias-nav::-webkit-scrollbar { display: none; }
+        .cat-btn { background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; color: #64748b; }
+        .cat-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
+        
+        /* Lista de Produtos */
+        .produto-card { background: white; border-radius: 12px; padding: 12px; margin-bottom: 12px; display: flex; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
+        .produto-img { width: 90px; height: 90px; border-radius: 8px; object-fit: cover; background: #e2e8f0; flex-shrink: 0; }
+        .produto-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .produto-nome { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
+        .produto-desc { font-size: 0.8rem; color: #64748b; margin: 4px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .produto-preco { font-size: 1rem; font-weight: 700; color: #dc2626; }
+        .btn-add { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; align-self: flex-end; }
+        
+        /* Barra do Carrinho Fixa */
+        .barra-carrinho { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); padding: 15px; display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto; border-top: 1px solid #e2e8f0; z-index: 99; }
+        .btn-ver-carrinho { background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        
+        /* Modal do Carrinho */
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: flex-end; z-index: 100; }
+        .modal-content { background: white; width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        .modal-fechar { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+        
+        /* Formulário de Finalização */
+        .form-group { margin-top: 12px; text-align: left; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: bold; color: #475569; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; font-size: 0.85rem; outline: none; }
+        .item-carrinho { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -38,226 +54,260 @@
 </head>
 <body>
 
-    <header>
-        <h1 id="nome-loja">Carregando...</h1>
-        <p id="descricao-loja">Seja bem-vindo ao nosso cardápio!</p>
-        <span id="status-tag" class="status-loja">Verificando horário...</span>
-    </header>
-
-    <div class="container">
-        <div id="cardapio-conteudo"></div>
-    </div>
-
-    <div id="barra-carrinho" class="barra-carrinho">
-        <div>
-            <span style="font-size: 0.75rem; color: #64748b; display: block;">Total sem entrega</span>
-            <strong id="barra-total" style="font-size: 1.1rem; color: #16a34a;">R$ 0,00</strong>
-        </div>
-        <button onclick="abrirCarrinho()" class="btn-ver-carrinho">
-            <i class="fa-solid fa-basket-shopping"></i> Ver Carrinho (<span id="barra-qtd">0</span>)
-        </button>
-    </div>
-
-    <div id="modal-carrinho" class="modal">
-        <div class="modal-conteudo">
-            <div class="modal-topo">
-                <h2>Seu Carrinho</h2>
-                <i class="fa-solid fa-xmark fechar-modal" onclick="fecharCarrinho()"></i>
-            </div>
-            
-            <div id="itens-lista"></div>
-            
-            <div style="margin-top: 15px; border-top: 2px dashed #f1f5f9; padding-top: 10px; font-size: 0.9rem;">
-                <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span><span id="modal-subtotal">R$ 0,00</span></div>
-                <div style="display:flex; justify-content:space-between; margin-top:4px;"><span>Taxa de Entrega:</span><span id="modal-taxa">R$ 0,00</span></div>
-                <div style="display:flex; justify-content:space-between; margin-top:8px; font-weight:bold; font-size:1.05rem; color:#16a34a;"><span>Total Geral:</span><span id="modal-total-geral">R$ 0,00</span></div>
-            </div>
-
-            <form class="form-pedido" onsubmit="enviarPedido(event)">
-                <input type="text" id="ped-nome" placeholder="Seu Nome completo" required>
-                <input type="text" id="ped-tel" placeholder="Seu Telefone / WhatsApp" required>
-                <select id="ped-Regiao" onchange="atualizarTaxaEntrega()" required>
-                    <option value="">Selecione a Região de Entrega</option>
-                    <option value="centro">Centro / Próximo</option>
-                    <option value="bairro">Bairros Afastados</option>
-                    <option value="retirada">Retirar no Balcão (Taxa R$ 0)</option>
-                </select>
-                <input type="text" id="ped-endereco" placeholder="Endereço completo (Rua, Número, Bairro)" required>
-                <select id="ped-pagamento" required>
-                    <option value="">Forma de Pagamento</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Cartão">Cartão de Crédito/Débito</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                </select>
-                <button type="submit" class="btn-finalizar">Confirmar e Enviar Pedido</button>
-            </form>
-        </div>
-    </div>
+    <div id="layout-principal"></div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const lojaId = urlParams.get('loja');
-
-        if(!lojaId) {
-            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Erro: Nenhuma lanchonete selecionada.</h2>";
-        }
+        const lojaId = urlParams.get('loja') || urlParams.get('Loja') || urlParams.get('LOJA');
 
         let dadosLoja = {};
         let produtos = [];
         let carrinho = [];
+        let categoriaAtual = "Todos";
+        let taxaEntregaSelecionada = 0;
 
-        document.addEventListener("DOMContentLoaded", () => {
+        // SE NÃO TIVER LOJA NO LINK: Tela de busca inteligente
+        if (!lojaId) {
+            document.getElementById('layout-principal').innerHTML = `
+                <div style="max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e2e8f0;">
+                    <i class="fa-solid fa-utensils" style="font-size: 2.5rem; color: #dc2626; background: #fee2e2; padding: 15px; border-radius: 50%; margin-bottom: 15px;"></i>
+                    <h2 style="font-size: 1.3rem; margin-bottom: 8px; color: #0f172a; font-weight:800;">Ver Cardápio Digital</h2>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Digite o nome da lanchonete abaixo para abrir o menu:</p>
+                    <input type="text" id="id-loja-menu" placeholder="Ex: testeloja" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; margin-bottom: 15px; outline: none; text-align: center;">
+                    <button onclick="abrirMenuFallback()" style="width: 100%; background: #dc2626; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer;">Visualizar Cardápio</button>
+                </div>
+            `;
+        } else {
+            // LINK OK: Inicializa o cardápio digital
+            document.getElementById('layout-principal').innerHTML = `
+                <div class="container">
+                    <div class="loja-header">
+                        <h1 id="nome-loja-txt">Carregando...</h1>
+                        <div id="status-loja-badge" class="status-badge">Aguardando...</div>
+                    </div>
+                    <div class="categorias-nav" id="lista-categorias"></div>
+                    <div id="lista-produtos-cards"></div>
+                </div>
+                <div class="barra-carrinho" id="barra-carrinho" style="display:none;">
+                    <div><span style="font-size:0.8rem; color:#64748b;">Total do Pedido</span><br><strong style="font-size:1.1rem; color:#dc2626;" id="barra-total">R$ 0,00</strong></div>
+                    <button class="btn-ver-carrinho" onclick="abrirModalCarrinho()"><i class="fa-solid fa-cart-shopping"></i> Ver Sacola (<span id="barra-qtd">0</span>)</button>
+                </div>
+                <div class="modal" id="modal-carrinho">
+                    <div class="modal-content">
+                        <div class="modal-header"><h2>Sua Sacola</h2><button class="modal-fechar" onclick="fecharModalCarrinho()">✕</button></div>
+                        <div id="itens-checkout"></div>
+                        <div style="margin-top:15px; background:#f8fafc; padding:12px; border-radius:8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;"><span>Subtotal:</span><span id="check-subtotal">R$ 0,00</span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;"><span>Taxa de Entrega:</span><span id="check-taxa">R$ 0,00</span></div>
+                            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1rem; border-top:1px solid #e2e8f0; padding-top:4px; margin-top:4px; color:#dc2626;"><span>Total Geral:</span><span id="check-total-geral">R$ 0,00</span></div>
+                        </div>
+                        <form onsubmit="enviarPedidoWhatsApp(event)">
+                            <div class="form-group"><label>Seu Nome:</label><input type="text" id="cli-nome" required></div>
+                            <div class="form-group"><label>Forma de Entrega / Região:</label>
+                                <select id="cli-taxa" onchange="atualizarTaxaEntrega(this.value)" required>
+                                    <option value="0">Retirar no Balcão (R$ 0,00)</option>
+                                    <option value="centro">Entrega Região Centro</option>
+                                    <option value="bairro">Entrega Outros Bairros</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Endereço Completo (Rua, Número, Bairro):</label><input type="text" id="cli-end" placeholder="Não necessário se for retirada"></div>
+                            <div class="form-group"><label>Forma de Pagamento:</label>
+                                <select id="cli-pgto" required>
+                                    <option value="Pix">Pix (Chave será informada)</option>
+                                    <option value="Cartão de Crédito/Débito">Cartão de Crédito/Débito</option>
+                                    <option value="Dinheiro">Dinheiro</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-ver-carrinho" style="width:100%; margin-top:15px; justify-content:center;"><i class="fa-solid fa-paper-plane"></i> Enviar Pedido via WhatsApp</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            inicializarCardapio();
+        }
+
+        function abrirMenuFallback() {
+            const id = document.getElementById('id-loja-menu').value.trim().toLowerCase();
+            if (id) { window.location.href = 'index.html?loja=' + id; }
+        }
+
+        function inicializarCardapio() {
             database.ref('lojas/' + lojaId + '/loja').on('value', (snapshot) => {
-                dadosLoja = snapshot.val();
-                if(dadosLoja) {
-                    document.getElementById('nome-loja').innerText = dadosLoja.nome;
-                    verificarHorarioLoja();
+                dadosLoja = snapshot.val() || { nome: "Fome Zero", aberta: true, taxaCentro: 0, taxaBairro: 0, whatsapp: "" };
+                document.getElementById('nome-loja-txt').innerText = dadosLoja.nome;
+                
+                const badge = document.getElementById('status-loja-badge');
+                if (dadosLoja.aberta) {
+                    badge.className = "status-badge aberto"; badge.innerText = "🟢 ABERTO AGORA";
+                } else {
+                    badge.className = "status-badge fechado"; badge.innerText = "🔴 FECHADO NO MOMENTO";
+                }
+
+                // Ajusta as opções do select de taxas com os valores corretos vindos do admin
+                const selectTaxa = document.getElementById('cli-taxa');
+                if(selectTaxa) {
+                    selectTaxa.options[1].text = `Entrega Região Centro (R$ ${dadosLoja.taxaCentro.toFixed(2)})`;
+                    selectTaxa.options[2].text = `Entrega Outros Bairros (R$ ${dadosLoja.taxaBairro.toFixed(2)})`;
                 }
             });
 
             database.ref('lojas/' + lojaId + '/produtos').on('value', (snapshot) => {
                 produtos = snapshot.val() || [];
-                renderizarCardapio();
+                renderizacaoCompleta();
             });
-        });
-
-        function verificarHorarioLoja() {
-            const tag = document.getElementById('status-tag');
-            if (!dadosLoja.usarHorarioAuto) {
-                if (dadosLoja.aberta) { tag.innerText = "🟢 ABERTA AGORA"; tag.style.background = "#16a34a"; }
-                else { tag.innerText = "🔴 FECHADA"; tag.style.background = "#dc2626"; }
-                return;
-            }
-            const agora = new Date();
-            const horaAtual = `${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}`;
-            if (horaAtual >= dadosLoja.horaAbre && horaAtual <= dadosLoja.horaFecha) {
-                tag.innerText = "🟢 ABERTA AGORA (AUTOMÁTICO)"; tag.style.background = "#16a34a";
-            } else {
-                tag.innerText = `🔴 FECHADA (Abre às ${dadosLoja.horaAbre})`; tag.style.background = "#dc2626";
-            }
         }
 
-        function renderizarCardapio() {
-            const container = document.getElementById('cardapio-conteudo');
-            container.innerHTML = '';
-            const categorias = [...new Set(produtos.filter(p => p && p.ativo).map(p => p.cat))];
-            
-            if(categorias.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#64748b; margin-top:30px;'>Nenhum item disponível no momento.</p>";
-                return;
-            }
-
-            categorias.forEach(cat => {
-                container.innerHTML += `<div class="categoria-titulo"><i class="fa-solid fa-circle-chevron-right" style="color:#dc2626; font-size:0.85rem;"></i> ${cat}</div>`;
-                produtos.forEach((p, index) => {
-                    if(p && p.ativo && p.cat === cat) {
-                        const foto = p.foto ? `<img src="${p.foto}" class="produto-foto">` : `<div class="produto-foto" style="display:flex; align-items:center; justify-content:center; color:#94a3b8;"><i class="fa-solid fa-image fa-lg"></i></div>`;
-                        container.innerHTML += `
-                            <div class="produto-card">
-                                <div class="produto-info">
-                                    <h3>${p.nome}</h3>
-                                    <p>${p.desc}</p>
-                                    <span class="produto-preco">R$ ${p.preco.toFixed(2).replace('.',',')}</span>
-                                    <button onclick="adicionarAoCarrinho(${index})" class="btn-adicionar">Adicionar</button>
-                                </div>
-                                ${foto}
-                            </div>
-                        `;
-                    }
-                });
+        function renderizacaoCompleta() {
+            // Renderizar Abas de Categorias
+            const catsNav = document.getElementById('lista-categorias');
+            const listaCats = ["Todos", ...new Set(produtos.filter(p => p && p.ativo).map(p => p.cat))];
+            catsNav.innerHTML = '';
+            listaCats.forEach(cat => {
+                const activeClass = cat === categoriaAtual ? 'active' : '';
+                catsNav.innerHTML += `<button class="cat-btn ${activeClass}" onclick="filtrarCategoria('${cat}')">${cat}</button>`;
             });
+
+            // Renderizar Cards de Produtos
+            const prodContainer = document.getElementById('lista-produtos-cards');
+            prodContainer.innerHTML = '';
+            
+            produtos.forEach((p, index) => {
+                if (p && p.ativo && (categoriaAtual === "Todos" || p.cat === categoriaAtual)) {
+                    const fotoValida = p.foto ? p.foto : 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=300';
+                    prodContainer.innerHTML += `
+                        <div class="produto-card">
+                            <img src="${fotoValida}" class="produto-img">
+                            <div class="produto-info">
+                                <div>
+                                    <div class="produto-nome">${p.nome}</div>
+                                    <div class="produto-desc">${p.desc}</div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                                    <span class="produto-preco">R$ ${p.preco.toFixed(2).replace('.',',')}</span>
+                                    <button class="btn-add" onclick="adicionarAoCarrinho(${index})">+ Adicionar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function filtrarCategoria(cat) {
+            categoriaAtual = cat;
+            renderizacaoCompleta();
         }
 
         function adicionarAoCarrinho(index) {
             const prod = produtos[index];
-            const itemNoCarrinho = carrinho.find(item => item.index === index);
-            if(itemNoCarrinho) { itemNoCarrinho.qtd++; }
-            else { carrinho.push({ index: index, nome: prod.nome, preco: prod.preco, qtd: 1 }); }
-            atualizarBarraCarrinho();
+            const itemExistente = carrinho.find(item => item.index === index);
+            if (itemExistente) {
+                itemExistente.qtd++;
+            } else {
+                carrinho.push({ index, nome: prod.nome, preco: prod.preco, qtd: 1 });
+            }
+            atualizarInterfaceCarrinho();
         }
 
-        function atualizarBarraCarrinho() {
+        function atualizarInterfaceCarrinho() {
             const barra = document.getElementById('barra-carrinho');
-            if(carrinho.length > 0) {
-                barra.style.display = 'flex';
-                const total = carrinho.reduce((s, i) => s + (i.preco * i.qtd), 0);
-                const qtd = carrinho.reduce((s, i) => s + i.qtd, 0);
-                document.getElementById('barra-total').innerText = `R$ ${total.toFixed(2).replace('.',',')}`;
-                document.getElementById('barra-qtd').innerText = qtd;
-            } else { barra.style.display = 'none'; }
+            if (carrinho.length === 0) {
+                barra.style.display = "none";
+                return;
+            }
+            barra.style.display = "flex";
+
+            let subtotal = 0;
+            let totalQtd = 0;
+            carrinho.forEach(item => { subtotal += (item.preco * item.qtd); totalQtd += item.qtd; });
+
+            document.getElementById('barra-total').innerText = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
+            document.getElementById('barra-qtd').innerText = totalQtd;
+            
+            // Atualiza dados internos do modal de checkout também
+            document.getElementById('check-subtotal').innerText = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
+            document.getElementById('check-taxa').innerText = `R$ ${taxaEntregaSelecionada.toFixed(2).replace('.',',')}`;
+            document.getElementById('check-total-geral').innerText = `R$ ${(subtotal + taxaEntregaSelecionada).toFixed(2).replace('.',',')}`;
         }
 
-        function abrirCarrinho() { document.getElementById('modal-carrinho').style.display = 'flex'; atualizarModalCarrinho(); }
-        function fecharCarrinho() { document.getElementById('modal-carrinho').style.display = 'none'; }
+        function atualizarTaxaEntrega(valor) {
+            if (valor === "centro") taxaEntregaSelecionada = dadosLoja.taxaCentro;
+            else if (valor === "bairro") taxaEntregaSelecionada = dadosLoja.taxaBairro;
+            else taxaEntregaSelecionada = 0;
+            atualizarInterfaceCarrinho();
+        }
 
-        function atualizarModalCarrinho() {
-            const lista = document.getElementById('itens-lista'); lista.innerHTML = '';
-            carrinho.forEach((item, i) => {
-                lista.innerHTML += `
+        function abrirModalCarrinho() {
+            const container = document.getElementById('itens-checkout');
+            container.innerHTML = '';
+            carrinho.forEach(item => {
+                container.innerHTML += `
                     <div class="item-carrinho">
                         <span>${item.qtd}x ${item.nome}</span>
-                        <span>R$ ${(item.preco * item.qtd).toFixed(2)} <i class="fa-solid fa-trash" onclick="removerDoCarrinho(${i})" style="color:#ef4444; margin-left:8px; cursor:pointer;"></i></span>
+                        <strong>R$ ${(item.preco * item.qtd).toFixed(2).replace('.',',')}</strong>
                     </div>
                 `;
             });
-            atualizarTaxaEntrega();
+            document.getElementById('modal-carrinho').style.display = "flex";
         }
 
-        function removerDoCarrinho(i) {
-            carrinho.splice(i, 1);
-            atualizarBarraCarrinho();
-            if(carrinho.length === 0) { fecharCarrinho(); } else { atualizarModalCarrinho(); }
-        }
+        function fecharModalCarrinho() { document.getElementById('modal-carrinho').style.display = "none"; }
 
-        function atualizarTaxaEntrega() {
-            const regiao = document.getElementById('ped-Regiao').value;
-            let taxa = 0;
-            if(regiao === 'centro') taxa = parseFloat(dadosLoja.taxaCentro) || 0;
-            if(regiao === 'bairro') taxa = parseFloat(dadosLoja.taxaBairro) || 0;
-            
-            const subtotal = carrinho.reduce((s, i) => s + (i.preco * i.qtd), 0);
-            const totalGeral = subtotal + taxa;
-
-            document.getElementById('modal-subtotal').innerText = `R$ ${subtotal.toFixed(2)}`;
-            document.getElementById('modal-taxa').innerText = `R$ ${taxa.toFixed(2)}`;
-            document.getElementById('modal-total-geral').innerText = `R$ ${totalGeral.toFixed(2)}`;
-        }
-
-        function enviarPedido(event) {
+        function enviarPedidoWhatsApp(event) {
             event.preventDefault();
-            const nome = document.getElementById('ped-nome').value;
-            const tel = document.getElementById('ped-tel').value;
-            const endereco = document.getElementById('ped-endereco').value;
-            const pagamento = document.getElementById('ped-pagamento').value;
-            const regiao = document.getElementById('ped-Regiao').value;
+            if(!dadosLoja.aberta) {
+                alert("A lanchonete está fechada no momento. O pedido não poderá ser processado.");
+                return;
+            }
+
+            const nome = document.getElementById('cli-nome').value.trim();
+            const endereco = document.getElementById('cli-end').value.trim();
+            const pgto = document.getElementById('cli-pgto').value;
+            const tipoEntrega = document.getElementById('cli-taxa').value;
+
+            let textoPedido = `*🍔 NOVO PEDIDO - ${dadosLoja.nome.toUpperCase()}* \n\n`;
+            textoPedido += `*Cliente:* ${nome}\n`;
+            textoPedido += `-----------------------------\n`;
             
-            let taxa = 0;
-            if(regiao === 'centro') taxa = parseFloat(dadosLoja.taxaCentro) || 0;
-            if(regiao === 'bairro') taxa = parseFloat(dadosLoja.taxaBairro) || 0;
-            const subtotal = carrinho.reduce((s, i) => s + (i.preco * i.qtd), 0);
-            
-            const novoPedido = {
-                cliente: nome, telefone: tel, endereco: endereco, pagamento: pagamento,
-                taxa: taxa, total: subtotal + taxa, status: 'pendente', data: new Date().getTime(),
-                itens: carrinho
-            };
-
-            database.ref('lojas/' + lojaId + '/pedidos').push(novoPedido).then(() => {
-                let textoWhats = `*NOVO PEDIDO - ${dadosLoja.nome}*\n\n`;
-                textoWhats += `*Cliente:* ${nome}\n*Telefone:* ${tel}\n`;
-                textoWhats += `*Endereço:* ${endereco}\n`;
-                textoWhats += `*Pagamento:* ${pagamento}\n\n`;
-                textoWhats += `*ITENS:*\n`;
-                carrinho.forEach(i => { textoWhats += `👉 ${i.qtd}x ${i.nome} (R$ ${i.preco.toFixed(2)})\n`; });
-                textoWhats += `\n*Subtotal:* R$ ${subtotal.toFixed(2)}\n*Taxa:* R$ ${taxa.toFixed(2)}\n*Total Geral:* R$ ${(subtotal+taxa).toFixed(2)}`;
-
-                carrinho = [];
-                atualizarBarraCarrinho();
-                fecharCarrinho();
-                event.target.reset();
-
-                window.location.href = `https://api.whatsapp.com/send?phone=${dadosLoja.whatsapp}&text=${encodeURIComponent(textoWhats)}`;
+            let subtotal = 0;
+            carrinho.forEach(item => {
+                textoPedido += `👉 ${item.qtd}x ${item.nome} (R$ ${(item.preco * item.qtd).toFixed(2)})\n`;
+                subtotal += (item.preco * item.qtd);
             });
+
+            textoPedido += `-----------------------------\n`;
+            textoPedido += `*Subtotal:* R$ ${subtotal.toFixed(2)}\n`;
+            textoPedido += `*Taxa de Entrega:* R$ ${taxaEntregaSelecionada.toFixed(2)}\n`;
+            textoPedido += `*Total Geral:* R$ ${(subtotal + taxaEntregaSelecionada).toFixed(2)}\n\n`;
+            
+            if(tipoEntrega === "0") {
+                textoPedido += `📍 *Forma:* Retirada no Balcão\n`;
+            } else {
+                textoPedido += `📍 *Endereço:* ${endereco}\n`;
+            }
+            textoPedido += `💳 *Pagamento:* ${pgto}\n`;
+
+            if(pgto === "Pix" && dadosLoja.chavePix) {
+                textoPedido += `\n🔑 *Chave Pix Copie e Cole:* \n\`${dadosLoja.chavePix}\`\n`;
+            }
+
+            // Grava o pedido de forma silenciosa no Firebase para computar os relatórios do dashboard do painel
+            const novoPedidoRef = database.ref('lojas/' + lojaId + '/pedidos').push();
+            novoPedidoRef.set({
+                cliente: nome,
+                total: (subtotal + taxaEntregaSelecionada),
+                status: 'entregue', // computa direto no faturamento
+                data: new Date().toLocaleDateString()
+            });
+
+            // Dispara a mensagem formatada para o WhatsApp da Lanchonete
+            const urlWpp = `https://api.whatsapp.com/send?phone=${dadosLoja.whatsapp}&text=${encodeURIComponent(textoPedido)}`;
+            window.open(urlWpp, '_blank');
+            
+            // Limpa o carrinho e fecha o modal
+            carrinho = [];
+            atualizarInterfaceCarrinho();
+            fecharModalCarrinho();
         }
     </script>
 </body>
